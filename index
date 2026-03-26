@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Blueprint Quiz · Nicole Hate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1410;
+    --parchment: #f5f0e8;
+    --warm-white: #faf7f2;
+    --gold: #b8956a;
+    --gold-light: #d4b48a;
+    --gold-dark: #8a6a42;
+    --muted: #7a6e64;
+    --border: #d9d0c4;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--warm-white);
+    color: var(--ink);
+    font-family: var(--serif);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── BACKGROUND TEXTURE ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(184,149,106,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(184,149,106,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; animation: fadeUp 0.6s ease both; }
+  .screen.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── HEADER ─── */
+  .site-header {
+    padding: 32px 0 0;
+    text-align: center;
+  }
+  .site-header .wordmark {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .divider-line {
+    width: 1px; height: 40px;
+    background: var(--border);
+    margin: 16px auto;
+  }
+
+  /* ─── INTRO SCREEN ─── */
+  #screen-intro { padding-top: 40px; text-align: center; }
+
+  .intro-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+
+  .intro-headline {
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: 28px;
+  }
+  .intro-headline em {
+    font-style: italic;
+    color: var(--gold-dark);
+  }
+
+  .intro-body {
+    font-size: 1.15rem;
+    font-weight: 300;
+    line-height: 1.75;
+    color: var(--muted);
+    max-width: 520px;
+    margin: 0 auto 40px;
+  }
+
+  .intro-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--border);
+    text-transform: uppercase;
+    margin-bottom: 48px;
+  }
+
+  /* ─── BUTTONS ─── */
+  .btn-primary {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 18px 48px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    text-decoration: none;
+  }
+  .btn-primary:hover { background: var(--gold-dark); transform: translateY(-1px); }
+
+  .btn-ghost {
+    display: inline-block;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 14px 36px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    text-decoration: none;
+    margin-top: 16px;
+  }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold-dark); }
+
+  /* ─── QUIZ SCREEN ─── */
+  #screen-quiz { padding: 48px 0 80px; }
+
+  .progress-bar-wrap {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 56px;
+  }
+  .progress-track {
+    flex: 1; height: 1px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-fill {
+    position: absolute; left: 0; top: 0; height: 100%;
+    background: var(--gold);
+    transition: width 0.5s ease;
+  }
+  .progress-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .question-block { display: none; animation: fadeUp 0.5s ease both; }
+  .question-block.active { display: block; }
+
+  .q-number {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .q-text {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 300;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin-bottom: 40px;
+    max-width: 560px;
+  }
+  .q-text em { font-style: italic; color: var(--gold-dark); }
+
+  .options-grid { display: flex; flex-direction: column; gap: 12px; }
+
+  .option-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 20px 24px;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 300;
+    line-height: 1.5;
+    color: var(--ink);
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    position: relative;
+  }
+  .option-btn::before {
+    content: '';
+    position: absolute; left: 0; top: 0;
+    width: 3px; height: 100%;
+    background: var(--gold);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.2s ease;
+  }
+  .option-btn:hover {
+    border-color: var(--gold-light);
+    background: rgba(184,149,106,0.04);
+    transform: translateX(4px);
+  }
+  .option-btn:hover::before { transform: scaleY(1); }
+  .option-btn.selected {
+    border-color: var(--gold);
+    background: rgba(184,149,106,0.08);
+    transform: translateX(4px);
+  }
+  .option-btn.selected::before { transform: scaleY(1); }
+
+  .option-letter {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  /* ─── EMAIL SCREEN ─── */
+  #screen-email { padding: 48px 0 80px; text-align: center; }
+
+  .email-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+
+  .email-headline {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 300;
+    line-height: 1.25;
+    margin-bottom: 20px;
+  }
+  .email-headline em { font-style: italic; color: var(--gold-dark); }
+
+  .email-body {
+    font-size: 1.1rem;
+    font-weight: 300;
+    line-height: 1.75;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto 40px;
+  }
+
+  .email-form { max-width: 400px; margin: 0 auto; }
+
+  .field-group { margin-bottom: 16px; text-align: left; }
+  .field-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 8px;
+  }
+  .field-input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 16px 18px;
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--ink);
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .field-input:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+  .field-input::placeholder { color: var(--border); }
+
+  .form-submit {
+    width: 100%;
+    margin-top: 8px;
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 20px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .form-submit:hover { background: var(--gold-dark); }
+
+  .privacy-note {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--border);
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+
+  /* ─── RESULTS SCREEN ─── */
+  #screen-results { padding: 48px 0 80px; }
+
+  .results-header { text-align: center; margin-bottom: 56px; }
+
+  .result-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+
+  .result-type {
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+  }
+  .result-type em { font-style: italic; color: var(--gold-dark); }
+
+  .result-subtitle {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+
+  .result-divider {
+    width: 48px; height: 1px;
+    background: var(--gold);
+    margin: 0 auto 40px;
+  }
+
+  .result-body {
+    font-size: 1.15rem;
+    font-weight: 300;
+    line-height: 1.8;
+    color: var(--ink);
+    margin: 0 auto 48px;
+    max-width: 560px;
+  }
+
+  .result-section {
+    border: 1px solid var(--border);
+    padding: 32px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .result-section::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -8px; left: 24px;
+    background: var(--warm-white);
+    padding: 0 8px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .result-section-body {
+    font-size: 1.05rem;
+    font-weight: 300;
+    line-height: 1.75;
+    color: var(--muted);
+  }
+  .result-section-body strong {
+    color: var(--ink);
+    font-weight: 400;
+  }
+
+  .result-phase {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    border: 1px solid var(--gold-light);
+    padding: 6px 14px;
+    margin-bottom: 32px;
+  }
+
+  .result-cta { text-align: center; margin-top: 56px; }
+  .result-cta-text {
+    font-size: 1.1rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--muted);
+    max-width: 440px;
+    margin: 0 auto 32px;
+  }
+  .result-cta-text em { font-style: italic; color: var(--ink); }
+
+  /* ─── ORNAMENT ─── */
+  .ornament {
+    text-align: center;
+    color: var(--gold-light);
+    font-size: 1.2rem;
+    letter-spacing: 0.5em;
+    margin: 40px 0;
+  }
+
+  /* ─── FOOTER ─── */
+  .site-footer {
+    padding: 40px 0 48px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+  .site-footer p {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--border);
+    text-transform: uppercase;
+    line-height: 2;
+  }
+  .site-footer a { color: var(--gold); text-decoration: none; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 480px) {
+    .container { padding: 0 20px; }
+    .option-btn { padding: 18px 20px; }
+    .result-section { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- SITE HEADER -->
+  <header class="site-header">
+    <div class="wordmark">Nicole Hate · The Reclamation Method™</div>
+    <div class="divider-line"></div>
+  </header>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- SCREEN 1: INTRO                        -->
+  <!-- ══════════════════════════════════════ -->
+  <section id="screen-intro" class="screen active">
+    <p class="intro-eyebrow">The Blueprint Quiz</p>
+    <h1 class="intro-headline">
+      Which <em>Performance</em><br>are you still running?
+    </h1>
+    <p class="intro-body">
+      You've done the self-awareness. You can name every pattern in perfect clinical language.
+      And yet here you are — still running the same old choreography.<br><br>
+      This isn't a personality test. It's a diagnostic.<br>
+      Seven questions. Three minutes. Real answers.
+    </p>
+    <p class="intro-meta">7 questions · ~3 minutes · Free</p>
+    <div>
+      <button class="btn-primary" onclick="startQuiz()">Begin The Reckoning →</button>
+    </div>
+    <div class="ornament" style="margin-top:56px;">· · ·</div>
+    <p style="font-size:0.9rem;font-weight:300;color:var(--muted);text-align:center;max-width:420px;margin:0 auto 60px;line-height:1.8;">
+      <em>"Come to me if you insist on remembering what you were before the world told you who to be."</em>
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- SCREEN 2: QUIZ                         -->
+  <!-- ══════════════════════════════════════ -->
+  <section id="screen-quiz" class="screen">
+
+    <div class="progress-bar-wrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-label" id="progress-label">1 of 7</div>
+    </div>
+
+    <!-- Q1 -->
+    <div class="question-block active" id="q1">
+      <p class="q-number">Question 01</p>
+      <h2 class="q-text">The meeting ends. Everyone files out. How are you?</h2>
+      <div class="options-grid">
+        <button class="option-btn" onclick="answer(1,'A')">
+          <span class="option-letter">A</span>
+          Already composing the follow-up email in my head. Still performing. Can't turn it off.
+        </button>
+        <button class="option-btn" onclick="answer(1,'B')">
+          <span class="option-letter">B</span>
+          Noticing I said yes to three things I didn't mean. Again.
+        </button>
+        <button class="option-btn" onclick="answer(1,'C')">
+          <span class="option-letter">C</span>
+          Quietly relieved it's over. I was there but not really there.
+        </button>
+        <button class="option-btn" onclick="answer(1,'D')">
+          <span class="option-letter">D</span>
+          Running the post-mortem: what I said, what they thought, what I should have said instead.
+        </button>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="question-block" id="q2">
+      <p class="q-number">Question 02</p>
+      <h2 class="q-text">Someone asks how you <em>really</em> are. What happens first?</h2>
+      <div class="options-grid">
+        <button class="option-btn" onclick="answer(2,'A')">
+          <span class="option-letter">A</span>
+          "I'm good" is already out of my mouth before I've even checked.
+        </button>
+        <button class="option-btn" onclick="answer(2,'B')">
+          <span class="option-letter">B</span>
+          I start answering, then edit myself mid-sentence. Shorter. Lighter. Safer.
+        </button>
+        <button class="option-btn" onclick="answer(2,'C')">
+          <span class="option-letter">C</span>
+          I actually don't know. I'd have to sit with that for a while.
+        </button>
+        <button class="option-btn" onclick="answer(2,'D')">
+          <span class="option-letter">D</span>
+          I tell them — and then immediately wonder if I said too much.
+        </button>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="question-block" id="q3">
+      <p class="q-number">Question 03</p>
+      <h2 class="q-text">The fantasy you don't say out loud is closest to...</h2>
+      <div class="options-grid">
+        <button class="option-btn" onclick="answer(3,'A')">
+          <span class="option-letter">A</span>
+          Burning the calendar. All of it. And rebuilding from nothing.
+        </button>
+        <button class="option-btn" onclick="answer(3,'B')">
+          <span class="option-letter">B</span>
+          Saying exactly what I mean, once, without having to manage anyone's reaction.
+        </button>
+        <button class="option-btn" onclick="answer(3,'C')">
+          <span class="option-letter">C</span>
+          Waking up and feeling something. Anything. Like I'm actually in my own life.
+        </button>
+        <button class="option-btn" onclick="answer(3,'D')">
+          <span class="option-letter">D</span>
+          Being recognized for who I actually am — not the version I've been performing.
+        </button>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="question-block" id="q4">
+      <p class="q-number">Question 04</p>
+      <h2 class="q-text">Which sentence lands like a punch?</h2>
+      <div class="options-grid">
+        <button class="option-btn" onclick="answer(4,'A')">
+          <span class="option-letter">A</span>
+          "You're so capable." (Because I built that. And it's a cage.)
+        </button>
+        <button class="option-btn" onclick="answer(4,'B')">
+          <span class="option-letter">B</span>
+          "You're so easy to be around." (Because I made myself that way on purpose.)
+        </button>
+        <button class="option-btn" onclick="answer(4,'C')">
+          <span class="option-letter">C</span>
+          "You seem fine." (Because the performance is working. That's the problem.)
+        </button>
+        <button class="option-btn" onclick="answer(4,'D')">
+          <span class="option-letter">D</span>
+          "You're so hard on yourself." (Because nothing I do ever feels like enough.)
+        </button>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="question-block" id="q5">
+      <p class="q-number">Question 05</p>
+      <h2 class="q-text">You've read the books. Done the therapy. Taken the courses. And yet...</h2>
+      <div class="options-grid">
+        <button class="option-btn" onclick="answer(5,'A')">
+          <span class="option-letter">A</span>
+          I still wake up and run the same day I ran yesterday.
+        </button>
+        <button class="option-btn" onclick="answer(5,'B')">
+          <span class="option-letter">B</span>
+          I know exactly why I do what I do. It doesn't stop me doing it.
+        </button>
+        <button class="option-btn" onclick="answer(5,'C')">
+          <span class="option-letter">C</span>
+          I can explain every pattern in clinical detail. Nothing has changed.
+        </button>
+        <button class="option-btn" onclick="answer(5,'D')">
+          <span class="option-letter">D</span>
+          I've improved. I'm better. And there's still something underneath I haven't touched.
+        </button>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="question-block" id="q6">
+      <p class="q-number">Question 06</p>
+      <h2 class="q-text">When did you last do something that was only, entirely for you?</h2>
+      <div class="options-grid">
+        <button class="option-btn" onclick="answer(6,'A')">
+          <span class="option-letter">A</span>
+          I can't remember. Everything has a function.
+        </button>
+        <button class="option-btn" onclick="answer(6,'B')">
+          <span class="option-letter">B</span>
+          I did — but I felt guilty the whole time.
+        </button>
+        <button class="option-btn" onclick="answer(6,'C')">
+          <span class="option-letter">C</span>
+          I tried. Then I checked my phone. Then it was gone.
+        </button>
+        <button class="option-btn" onclick="answer(6,'D')">
+          <span class="option-letter">D</span>
+          I made space for it — but I'm not sure I actually showed up for it.
+        </button>
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="question-block" id="q7">
+      <p class="q-number">Question 07</p>
+      <h2 class="q-text">The most honest version of where you are right now is...</h2>
+      <div class="options-grid">
+        <button class="option-btn" onclick="answer(7,'A')">
+          <span class="option-letter">A</span>
+          I built something impressive and I'm not sure I want it anymore.
+        </button>
+        <button class="option-btn" onclick="answer(7,'B')">
+          <span class="option-letter">B</span>
+          I've made myself easy for everyone. And I've made it very hard to find myself.
+        </button>
+        <button class="option-btn" onclick="answer(7,'C')">
+          <span class="option-letter">C</span>
+          I'm going through the motions. I've been going through them for a long time.
+        </button>
+        <button class="option-btn" onclick="answer(7,'D')">
+          <span class="option-letter">D</span>
+          I know something is true about me that I haven't been allowed to say yet.
+        </button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- SCREEN 3: EMAIL CAPTURE                -->
+  <!-- ══════════════════════════════════════ -->
+  <section id="screen-email" class="screen">
+    <p class="email-eyebrow">Your Blueprint Is Ready</p>
+    <h2 class="email-headline">
+      We found something.<br>
+      <em>Where should we send it?</em>
+    </h2>
+    <p class="email-body">
+      Your results are waiting. Enter your name and email — Nicole will send your full reading directly to your inbox, along with what to do next.
+    </p>
+    <div class="email-form">
+      <div class="field-group">
+        <label class="field-label" for="field-name">First Name</label>
+        <input class="field-input" id="field-name" type="text" placeholder="Your name" autocomplete="given-name" />
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="field-email">Email Address</label>
+        <input class="field-input" id="field-email" type="email" placeholder="you@email.com" autocomplete="email" />
+      </div>
+      <button class="form-submit" onclick="submitEmail()">Show Me My Results →</button>
+      <p class="privacy-note">No spam. No performance required.<br>Unsubscribe any time.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- SCREEN 4: RESULTS                      -->
+  <!-- ══════════════════════════════════════ -->
+  <section id="screen-results" class="screen">
+    <div class="results-header">
+      <p class="result-eyebrow">Your Blueprint Reading</p>
+      <h2 class="result-type" id="result-type-title">—</h2>
+      <p class="result-subtitle" id="result-subtitle">—</p>
+      <div class="result-divider"></div>
+      <div id="result-phase-badge" class="result-phase">—</div>
+    </div>
+
+    <p class="result-body" id="result-body">—</p>
+
+    <div class="result-section" data-label="What This Means">
+      <p class="result-section-body" id="result-meaning">—</p>
+    </div>
+
+    <div class="result-section" data-label="What The Work Looks Like For You">
+      <p class="result-section-body" id="result-work">—</p>
+    </div>
+
+    <div class="ornament">· · ·</div>
+
+    <div class="result-cta">
+      <p class="result-cta-text">
+        <em>The proof isn't in my opinion.</em><br>
+        It's in your Blueprint. It was always there.<br>
+        We're just finally going to look at it together.
+      </p>
+      <a href="https://nicolehate.com" class="btn-primary" target="_blank">Work With Nicole →</a>
+      <br>
+      <button class="btn-ghost" onclick="retakeQuiz()">← Retake the Quiz</button>
+    </div>
+
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <p>The Reclamation Method™ · <a href="https://nicolehate.com">nicolehate.com</a></p>
+    <p>© 2025 Nicole Hate · Gene Keys Guide · Identity Alchemy</p>
+  </footer>
+
+</div><!-- /container -->
+
+<script>
+  // ─── STATE ───────────────────────────────────
+  const answers = {};
+  let currentQ = 1;
+  const totalQ = 7;
+
+  // ─── RESULT PROFILES ─────────────────────────
+  const profiles = {
+    A: {
+      title: "The High-Functioning Performer",
+      subtitle: "The woman who built everything — and can't stop.",
+      phase: "Ready for The Reckoning",
+      body: `You are exceptional at capacity. You built a life that runs on competence — and it does run. Meetings happen, deliverables land, people rely on you. The problem isn't that you can't cope. You have never failed to cope. The problem is that coping has become the whole story. Somewhere underneath the performance is a woman who hasn't been asked what she actually wants in a very long time.`,
+      meaning: `<strong>The Performance you're running:</strong> Capability as identity. You learned early that being the one who handles it creates safety, recognition, and worth. You built it into a skill so refined it became invisible — even to you. Now the role is full and you are empty. The calendar is a list of obligations to a version of yourself you never consciously chose.`,
+      work: `For you, The Reckoning begins with one question: <strong>who were you before you became the person who handles everything?</strong> Not to dismantle what you built — but to stop bleeding energy into a performance that was never yours to begin with. What was left when you stopped pretending was always the truest part. The Gene Keys Blueprint is how we read that map.`
+    },
+    B: {
+      title: "The Accommodator",
+      subtitle: "The woman who made herself easy to love — at considerable cost.",
+      phase: "Ready for The Reclaiming",
+      body: `You have made yourself frictionless. You learned — probably very young — that being agreeable, flexible, and easy to be around was the way you stayed safe, chosen, and connected. You got exceptionally good at it. So good that your "yes" has been running on autopilot for years, and your "no" leaks before it ever arrives. You are generous. You are beloved. And you have made yourself very difficult to find.`,
+      meaning: `<strong>The Performance you're running:</strong> Belonging through self-erasure. The cost isn't visible from the outside — you seem fine, present, warm. The cost is paid in private: the slow accumulation of small abandonments, the relationships organized around your willingness to disappear yourself, the energy spent managing everyone's comfort except your own.`,
+      work: `The Reclaiming is your phase. It begins not with learning to say no — but with learning to feel the moment you were about to abandon yourself, and pausing there long enough to make a different choice. <strong>Your Blueprint will show you the specific shape of your genius</strong> — the parts of you that never needed accommodating, that were always true, that the right people were always going to recognize.`
+    },
+    C: {
+      title: "The Disappeared",
+      subtitle: "The woman who is going through the motions and knows it.",
+      phase: "At The Wall",
+      body: `You are present. You show up. You do the things. And you are barely there. Not because you're depressed, not because anything is technically wrong — but because the life you're living was built for a version of you that you've slowly stopped recognizing. The dissociation isn't dramatic. It's the quiet, pervasive sense of watching your own life from a slight remove. Of being competent in a life that doesn't quite fit.`,
+      meaning: `<strong>The Performance you're running:</strong> Continuity at the cost of aliveness. You have kept going because stopping felt impossible — or irresponsible, or ungrateful. The identity you've been maintaining is functional. It just doesn't feel like <em>you</em> anymore. That's not a personal failing. That's what identity fatigue looks like from the inside.`,
+      work: `Before the Reckoning, there is the recognition — and you are already in it. <strong>The first thing the Blueprint does for you is give you language for what is actually true.</strong> Not a new personality to perform. A map of who you were before anyone told you who to be. We start there. What is already written about you has been waiting for someone to read it with you.`
+    },
+    D: {
+      title: "The Almost-There",
+      subtitle: "The woman who has done the work — and knows there is still a layer underneath.",
+      phase: "Approaching The Initiation",
+      body: `You are not at the beginning. You've been in the work. You've done the therapy, the insight, the unraveling. You understand your patterns in precise clinical detail. And you know — because you are honest — that there is still something underneath that the insight hasn't reached. Not because you haven't worked hard enough. Because insight lives in the mind, and what you're reaching for lives somewhere else.`,
+      meaning: `<strong>The Performance you're running:</strong> Growth as identity. For you, the new Performance is the self-aware version — the woman who knows herself, who has done the work, who speaks the language. It's more subtle than the old one. It's still a performance. The deeper work isn't more understanding. It's embodiment — what happens when the knowledge stops being a concept and starts being a lived reality.`,
+      work: `The Initiation is where you're headed. <strong>Your Blueprint is not going to show you what you already know.</strong> It's going to show you the specific, embodied shape of your genius that has always been underneath the knowing. The work with Nicole goes below willpower, below intention, into the body where the pattern actually lives — and where the only real interruption is possible.`
+    }
+  };
+
+  // ─── QUIZ LOGIC ───────────────────────────────
+  function startQuiz() {
+    showScreen('screen-quiz');
+    updateProgress();
+  }
+
+  function answer(qNum, choice) {
+    answers[qNum] = choice;
+
+    // highlight selected
+    const block = document.getElementById('q' + qNum);
+    block.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+
+    // short delay then advance
+    setTimeout(() => {
+      if (qNum < totalQ) {
+        goToQuestion(qNum + 1);
+      } else {
+        showScreen('screen-email');
+      }
+    }, 380);
+  }
+
+  function goToQuestion(n) {
+    document.querySelectorAll('.question-block').forEach(b => b.classList.remove('active'));
+    const next = document.getElementById('q' + n);
+    if (next) {
+      currentQ = n;
+      next.classList.add('active');
+      updateProgress();
+      next.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function updateProgress() {
+    const pct = ((currentQ - 1) / totalQ) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = currentQ + ' of ' + totalQ;
+  }
+
+  // ─── EMAIL ────────────────────────────────────
+  async function submitEmail() {
+    const name  = document.getElementById('field-name').value.trim();
+    const email = document.getElementById('field-email').value.trim();
+
+    if (!name) {
+      document.getElementById('field-name').focus();
+      document.getElementById('field-name').style.borderColor = 'var(--gold)';
+      return;
+    }
+    if (!email || !email.includes('@')) {
+      document.getElementById('field-email').focus();
+      document.getElementById('field-email').style.borderColor = 'var(--gold)';
+      return;
+    }
+
+    // Determine result
+    const profile = getProfile();
+    showResults(profile, name);
+    showScreen('screen-results');
+
+    // ── FLODESK INTEGRATION ───────────────────────
+    // Calls the Netlify serverless function in /netlify/functions/subscribe.js
+    // which securely proxies to Flodesk with your API key stored server-side.
+    try {
+      const res = await fetch('/.netlify/functions/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, quizResult: profiles[profile].title }),
+      });
+      if (!res.ok) console.error('Subscribe error:', await res.text());
+    } catch (err) {
+      console.error('Subscribe fetch failed:', err);
+    }
+  }
+
+  // ─── SCORING ──────────────────────────────────
+  function getProfile() {
+    const counts = { A: 0, B: 0, C: 0, D: 0 };
+    Object.values(answers).forEach(a => { if (counts[a] !== undefined) counts[a]++; });
+    return Object.entries(counts).sort((x, y) => y[1] - x[1])[0][0];
+  }
+
+  // ─── RESULTS ──────────────────────────────────
+  function showResults(profileKey, name) {
+    const p = profiles[profileKey];
+    const first = name.split(' ')[0];
+
+    document.getElementById('result-type-title').innerHTML =
+      p.title.replace(/([^·]+)/, '<em>$1</em>');
+    document.getElementById('result-subtitle').textContent  = p.subtitle;
+    document.getElementById('result-phase-badge').textContent = p.phase;
+    document.getElementById('result-body').innerHTML =
+      `<strong>${first},</strong> ` + p.body;
+    document.getElementById('result-meaning').innerHTML = p.meaning;
+    document.getElementById('result-work').innerHTML    = p.work;
+  }
+
+  // ─── SCREEN TRANSITIONS ───────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const s = document.getElementById(id);
+    s.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function retakeQuiz() {
+    Object.keys(answers).forEach(k => delete answers[k]);
+    currentQ = 1;
+    document.querySelectorAll('.question-block').forEach(b => b.classList.remove('active'));
+    document.getElementById('q1').classList.add('active');
+    document.getElementById('field-name').value  = '';
+    document.getElementById('field-email').value = '';
+    updateProgress();
+    showScreen('screen-quiz');
+  }
+</script>
+
+</body>
+</html>
